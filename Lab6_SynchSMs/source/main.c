@@ -1,112 +1,123 @@
-/* Author: Sidharth Ramkumar (sramk002@ucr.edu)
- *  Partner(s) Name: none
- *	Lab Section: 022
- *	Assignment: Lab #6  Exercise #2
- *	Exercise Description: [optional - include for your own benefit]
- *
- *	I acknowledge all content contained herein, excluding template or example
- *	code, is my own original work.
- */
+/*      Author Sidharth Ramkumar (sramk002@ucr.edu) 
+ *       *       *  Partner(s) Name: 
+ *        *        *      Lab Section: 022
+ *         *         *      Assignment: Lab #6  Exercise #3
+ *          *          *      Exercise Description: [optional - include for your own benefit]
+ *           *           *
+ *            *            *      I acknowledge all content contained herein, excluding template or example
+ *             *             *      code, is my own original work.
+ *              *              */
 #include <avr/io.h>
 #include "timer.h"
 #ifdef _SIMULATE_
 #include "simAVRHeader.h"
 #endif
 
-#define button (~PINA & 0x01)
+#define b1 (~PINA & 0x01)
+#define b2 (~PINA & 0x02)
 
-enum LED_Blink {SMStart, L1, L2, L3, Press, Press_Wait, Restart} LED_State;
+unsigned char userVal;
+unsigned long timeElapsed; //increments of 100 miliseconds
 
-void Tick_Fct(){
-   switch(LED_State){
-	case SMStart: 
-	LED_State = L1; 
-	break;
-	
-	case L1: 
-	if (button){
-	LED_State = Press;
-	} else {
-	LED_State = L2;
-	}
-	break;
+enum Num_States { SMStart, Wait, Inc, Dec, Reset } Num_State;
 
-	case L2:
-	if (button){
-	LED_State = Press;
-	} else {
-	LED_State = L3;
-	}
-	break;
+void TickFct(){
+   switch(Num_State) {
+        case SMStart:
+        Num_State = Wait;
+        break;
 
-	case L3: 
-	if (button) {
-	LED_State = Press;
-	} else {
-	LED_State = L1;
-	}
-	break;
-	
-	case Press:
-	if (button){
-	LED_State = Press;
-	} else {
-	LED_State = Press_Wait;
-	}
-	break;
-		
-	case Press_Wait:
-	if (button){
-	LED_State = Restart;
-	} else {
-	LED_State = Press_Wait;
-	}
-	break;
+        case Wait:
+        if (b1 && !b2){
+        timeElapsed = 10;
+        Num_State = Inc;
+        } else if (!b1 && b2){
+        timeElapsed = 10;
+        Num_State = Dec;
+        } else if (!b1 && !b2){
+        Num_State = Wait;
+        } else {
+        Num_State = Reset;
+        }
+        break;
 
-	case Restart:
-	if (button){
-	LED_State = Restart;
-	} else {
-	LED_State = L1;
-	}
-	break;	
+        case Inc:
+        if (b1 && !b2){
+        Num_State = Inc;
+        } else if (!b1 && b2){
+        Num_State = Dec;
+        } else if (!b1 && !b1){
+        Num_State = Wait;
+        } else {
+        Num_State = Reset;
+        }
+        break;
+
+        case Dec:
+        if (!b1 && b2){
+        Num_State = Dec;
+        } else if (b1 && !b2){
+        Num_State = Inc;
+        } else if (!b1 && !b2){
+        Num_State = Wait;
+        } else {
+        Num_State = Reset;
+        }
+        break;
+
+        case Reset:
+        if (b1 || b2){
+        Num_State = Reset;
+        } else {
+        Num_State = Wait;
+        }
+        break;
    }
 
-   switch(LED_State){
-	case SMStart: 
-	case L1:
-	PORTB = 0x01;
-	break;
+   switch (Num_State){
+        case Wait:
+        timeElapsed = 0;
+        break;
 
-	case L2:
-	PORTB = 0x02;
-	break;
+        case Inc:
+        if (timeElapsed < 10 && userVal < 9){
+        timeElapsed += 1;
+        } else if (timeElapsed >= 10 && userVal < 9){
+        timeElapsed = 0;
+        userVal += 1;
+        }
+        break;
 
-	case L3: 
-	PORTB = 0x04; 
-	break;
-        
-	default:
-	break;	
+        case Dec:
+        if (timeElapsed < 10 && userVal > 0){
+        timeElapsed += 1;
+        } else if (timeElapsed >= 10 && userVal > 0){
+        timeElapsed = 0;
+        userVal -= 1;
+        }
+        break;
+
+        case Reset:
+        userVal = 0;
+        break;
    }
 }
-
 int main(void) {
     /* Insert DDR and PORT initializations */
-	DDRA = 0x00; PORTA = 0xFF;
-	DDRB = 0xFF; PORTB = 0x00;
+        DDRA = 0x00; PORTA = 0xFF;
+        DDRC = 0xFF; PORTC = 0x00;
     /* Insert your solution below */
-	TimerSet(300);
-	TimerOn();
-	
-	LED_State = SMStart;
-    while (1) {
-	//User code (i.e. synchSM calls) 
-	Tick_Fct(); //Toggle PORTB
+        TimerSet(100);
+        TimerOn();
 
-	while (!TimerFlag); //Wait 1 sec
-	TimerFlag = 0;
+        timeElapsed = 0;
+        userVal= 7;
+        Num_State = SMStart;
+while (1) {
+       TickFct();
+       PORTB = userVal;
 
+        while (!TimerFlag);
+        TimerFlag = 0;
     }
     return 1;
-}
