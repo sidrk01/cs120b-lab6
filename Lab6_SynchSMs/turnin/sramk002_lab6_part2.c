@@ -17,7 +17,7 @@
 
 #define button (~PINA & 0x01)
 
-enum LED_Blink {SMStart, L1, L2, L3, Press, Press_Wait, Restart} LED_State;
+enum LED_Blink {SMStart, L1, L2, L3, Press, Press_Wait} LED_State;
 
 void Tick_Fct(){
    switch(LED_State){
@@ -59,19 +59,12 @@ void Tick_Fct(){
 		
 	case Press_Wait:
 	if (button){
-	LED_State = Restart;
+	LED_State = L1;
 	} else {
 	LED_State = Press_Wait;
 	}
 	break;
-
-	case Restart:
-	if (button){
-	LED_State = Restart;
-	} else {
-	LED_State = L1;
-	}
-	break;	
+	
    }
 
    switch(LED_State){
