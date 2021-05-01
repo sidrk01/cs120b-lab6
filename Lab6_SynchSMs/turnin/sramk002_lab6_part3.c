@@ -43,7 +43,7 @@ void TickFct(unsigned char *tmpB){
        if (b1 && !b2){
        Num_State = Inc;
        if (cnt % 10 == 0){
-          tmpB += 1;
+          *tmpB += 1;
        }
        } else if (b1 && b2){
        Num_State = Reset;
@@ -59,7 +59,7 @@ void TickFct(unsigned char *tmpB){
       if (!b1 && b2){
       Num_State = Dec;
         if (cnt % 10 == 0){
-          tmpB -= 1;
+          *tmpB -= 1;
         }
       } else if (b1 && b2){
        Num_State = Reset;
@@ -87,7 +87,7 @@ void TickFct(unsigned char *tmpB){
     break;
     
     case Reset:
-        tmpB = 0x00;
+        *tmpB = 0x00;
     break;
       
     default:
