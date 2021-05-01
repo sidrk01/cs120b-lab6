@@ -43,8 +43,6 @@ void TickFct(unsigned char *tmpB){
         }
      break;
       
-
-      
     case Inc:
        if (b1 && !b2){
        Num_State = Inc;
