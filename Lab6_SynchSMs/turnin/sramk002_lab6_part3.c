@@ -25,12 +25,16 @@ void TickFct(unsigned char *tmpB){
      case SMStart:
         Num_State = Wait;
      break;
-      
-     case Wait:
+
+    case Wait:
         cnt = 0;
         if (b1 && !b2){
+        *tmpB += 1;
         Num_State = Inc;
         } else if (!b1 && b2){
+        if (*tmpB > 0){
+        *tmpB -= 1;
+        }
         Num_State = Dec;
         } else if (b1 && b2){
         Num_State = Reset;
@@ -38,6 +42,8 @@ void TickFct(unsigned char *tmpB){
         Num_State = Wait;
         }
      break;
+      
+
       
     case Inc:
        if (b1 && !b2){
@@ -55,10 +61,10 @@ void TickFct(unsigned char *tmpB){
        }
    break;
       
-    case Dec:
+     case Dec:
       if (!b1 && b2){
       Num_State = Dec;
-        if (cnt % 10 == 0){
+        if ((cnt % 10 == 0) && (*tmpB > 0)){
           *tmpB -= 1;
         }
       } else if (b1 && b2){
@@ -68,8 +74,8 @@ void TickFct(unsigned char *tmpB){
       } else {
         Num_State = Inc;
         cnt = 0;
-      }      
-    break;
+      }
+    break; 
       
       case Reset:
       if (b1 || b1){
